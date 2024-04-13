@@ -6,6 +6,11 @@ from data import PriceData
 
 
 async def get_bonbast_prices():
+    try:
+        requests.get("https://bonbast.com", timeout=20)
+    except requests.exceptions.ConnectTimeout as e:
+        err = PriceData(name=str(e), code="ERROR", source="", price=0)
+        return [err]
     collections = bonbast.main.get_prices()
     prices = []
     for collection in collections:
