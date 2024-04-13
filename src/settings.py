@@ -24,7 +24,7 @@ def get_database_index():
         elif branch == "development":
             return 1
         else:
-            raise Exception("invalid git branch.")
+            raise Exception("invalid git branch. valid branches: 'main' or 'development'.")
     else:
         raise Exception("Unable to determine the current git branch.")
 

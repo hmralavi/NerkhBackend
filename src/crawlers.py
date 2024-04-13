@@ -1,10 +1,11 @@
+# TODO: use httpx.AsyncClient (pip install httpx) instead of requests.get
 import bonbast.main
 import requests
 from bs4 import BeautifulSoup
 from data import PriceData
 
 
-def get_bonbast_prices():
+async def get_bonbast_prices():
     collections = bonbast.main.get_prices()
     prices = []
     for collection in collections:
@@ -16,7 +17,7 @@ def get_bonbast_prices():
     return prices
 
 
-def get_tgju_prices():
+async def get_tgju_prices():
     url = "https://www.tgju.org/currency"
     response = requests.get(url)
     prices = []
