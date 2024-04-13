@@ -21,7 +21,7 @@ async def lifespan(app: FastAPI):
     app.state.redis.close()
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=None)
 
 
 @app.get("/")
