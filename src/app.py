@@ -29,11 +29,16 @@ async def index() -> str:
     return "Nerkh API. see /docs for details."
 
 
-@app.get("/get_prices")
+@app.get("/get_prices_bonbast")
 async def get_prices(asset_code: str = None) -> List[PriceData]:
     bonbast_prices = await get_bonbast_prices()
+    return bonbast_prices
+
+
+@app.get("/get_prices_tgju")
+async def get_prices(asset_code: str = None) -> List[PriceData]:
     tgju_prices = await get_tgju_prices()
-    return [*bonbast_prices, *tgju_prices]
+    return tgju_prices
 
 
 if __name__ == "__main__":
