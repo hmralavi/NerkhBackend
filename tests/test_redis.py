@@ -12,7 +12,7 @@ class TestRedisConnection(unittest.TestCase):
         test if connection to redis database is successfull.
         """
         try:
-            r = redis.Redis(host=DATABASE_HOST, port=DATABASE_PORT, db=DATABASE_INDEX)
+            r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD, db=REDIS_INDEX)
             r.ping()  # Test if the connection is working by sending a PING command
             connected = True
         except redis.ConnectionError:
@@ -24,7 +24,7 @@ class TestRedisData(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        r = redis.Redis(host=DATABASE_HOST, port=DATABASE_PORT, db=DATABASE_INDEX)
+        r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD, db=REDIS_INDEX)
         r.flushdb()
         cls.r = r
 

@@ -1,0 +1,63 @@
+name: Test and Deploy to Liara
+
+on:
+  push:
+    branches:
+      - main
+      - development
+
+jobs:
+  test:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+
+    services:
+      redis:
+        image: redis:6.0-alpine
+        ports:
+          - 6379:6379
+        options: --name redis-cache
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: 3.9.19
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        
+    - name: Run unittest
+      run: |
+        python -m unittest discover tests
+
+  deploy:
+    name: Deploy if Tests Pass
+    runs-on: ubuntu-latest
+    needs: test
+    if: ${{ success() }}
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Install Liara CLI
+        run: npm i -g @liara/cli@5
+
+      - name: Deploy
+        env:
+          LIARA_TOKEN: ${{ secrets.LIARA_API_TOKEN }}
+          PORT: "10000"
+
+        run: |
+          if [ ${{ github.ref }} == 'refs/heads/main' ]; then
+            liara deploy --app="nerkh-api" --platform=docker --port=$PORT --api-token="$LIARA_TOKEN"
+          elif [ ${{ github.ref }} == 'refs/heads/development' ]; then
+            liara deploy --app="nerkh-api-dev" --platform=docker --port=$PORT --api-token="$LIARA_TOKEN"
+          fi

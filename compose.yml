@@ -1,0 +1,15 @@
+services:
+  redis:
+    image: "redis:6.0-alpine"
+  
+  web:
+    build: .
+    ports:
+      - "10000:10000"
+    environment:
+      - CURRENT_BRANCH=development
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+    depends_on:
+      - redis

@@ -20,3 +20,11 @@ database indexes considered for this project:\
 0: main\
 1: development\
 2: testing
+
+# Docker
+
+## run
+
+```bash
+sudo docker compose up
+```

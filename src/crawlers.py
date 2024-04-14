@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from data import PriceData
 
 
-async def get_bonbast_prices():
+def get_bonbast_prices():
     try:
         requests.get("https://bonbast.com", timeout=20)
     except requests.exceptions.ConnectTimeout as e:
@@ -22,7 +22,7 @@ async def get_bonbast_prices():
     return prices
 
 
-async def get_tgju_prices():
+def get_tgju_prices():
     url = "https://www.tgju.org/currency"
     response = requests.get(url)
     prices = []
