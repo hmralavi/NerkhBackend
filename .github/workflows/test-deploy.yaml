@@ -61,7 +61,7 @@ jobs:
 
         run: |
           if [ ${{ github.ref }} == 'refs/heads/main' ]; then
-            liara deploy --app="nerkh-api" --platform=docker --port=$PORT --api-token="$LIARA_TOKEN"
+            liara deploy --app="nerkh-api" --platform=docker --port=$PORT --api-token="$LIARA_TOKEN" --no-app-logs
           elif [ ${{ github.ref }} == 'refs/heads/development' ]; then
-            liara deploy --app="nerkh-api-dev" --platform=docker --port=$PORT --api-token="$LIARA_TOKEN"
+            liara deploy --app="nerkh-api-dev" --platform=docker --port=$PORT --api-token="$LIARA_TOKEN" --no-app-logs
           fi
