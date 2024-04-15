@@ -42,9 +42,9 @@ def main():
     if current_branch == "main":
         url = "https://nerkh-api.liara.run/submit_prices"
     elif current_branch == "development":
-        # url = "https://nerkh-api-dev.liara.run/submit_prices"
+        url = "https://nerkh-api-dev.liara.run/submit_prices"
         # url = "http://localhost:8000/submit_prices"
-        url = "http://0.0.0.0:10000/submit_prices"
+        # url = "http://0.0.0.0:10000/submit_prices"
 
     if url:
         # bonbast_prices = get_bonbast_prices()
