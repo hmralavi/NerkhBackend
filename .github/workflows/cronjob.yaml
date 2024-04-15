@@ -1,0 +1,34 @@
+name: Cronjob Workflow
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'  # Run every 15 minutes
+
+jobs:
+  cronjob:
+    name: Run tests and then post prices
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+  
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.9.19
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run unittest
+        run: |
+          python -m unittest discover tests
+
+      - name: Post prices to backend
+        if: success()
+        env:
+          NERKH_TOKEN: ${{ secrets.NERKH_TOKEN }}
+        run: |
+          python data_submitter/main.py
