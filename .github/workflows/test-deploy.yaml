@@ -37,6 +37,7 @@ jobs:
         REDIS_HOST: "localhost"
         REDIS_PORT: "6379"
         REDIS_PASSWORD: ""
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
       run: |
         python -m unittest discover tests
 
