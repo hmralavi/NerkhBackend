@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, Depends, status, Header
 from typing import List, Optional
 from data import PriceData, convert_crawler_results
 from crawlers import get_bonbast_prices, get_tgju_prices
@@ -26,7 +26,7 @@ app = FastAPI(lifespan=lifespan)
 
 
 # Function to authenticate the user with the token
-def authenticate_token(token: str):
+def authenticate_token(token: str = Header(...)):
     token_status = validate_token(token)
     if not token_status[0]:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=token_status[1])
@@ -38,11 +38,10 @@ def index() -> str:
     return "Nerkh API. see /docs for details."
 
 
-@app.post("/store_prices")
-def store_prices(prices: List[PriceData], authenticated: bool = Depends(authenticate_token)):
-    # Here you can store the name in your database or perform any desired operation
+@app.post("/submit_prices")
+def submit_prices(prices: List[PriceData], authenticated: bool = Depends(authenticate_token)):
     app.state.redis.set("name", prices[0].code)
-    return {"message": f"Name '{prices}' stored successfully"}
+    return {"message": f"Name '{prices[0]}' stored successfully"}
 
 
 @app.get("/get_prices")
