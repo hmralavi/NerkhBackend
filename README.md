@@ -73,6 +73,8 @@ However, you must add environmental variables as described in `.env-template` fi
 
 - in order to deploy using github actions, you need to create a liara token and store it in the repository secret keys with this name:`LIARA_API_TOKEN`
 
+- also don't forget to add two more secret keys: `SECRET_KEY` and `NERKH_TOKEN`.
+
 ## Submit data to the server (mainly for the "bonbast" data)
 
 - Since bonbast is not reachable by liara server, We can use github actions as a cronjob to submit bonbast's data into our database.
