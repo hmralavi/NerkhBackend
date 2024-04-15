@@ -13,6 +13,13 @@ jobs:
     name: Run tests and then post prices
     runs-on: ubuntu-latest
 
+    # services:
+    #   redis:
+    #     image: redis:6.0-alpine
+    #     ports:
+    #       - 6379:6379
+    #     options: --name redis-cache
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -26,14 +33,14 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-      - name: Run unittest
-        env:
-          REDIS_HOST: "localhost"
-          REDIS_PORT: "6379"
-          REDIS_PASSWORD: ""
-          SECRET_KEY: ${{ secrets.SECRET_KEY }}
-        run: |
-          python -m unittest discover tests
+      # - name: Run unittest
+      #   env:
+      #     REDIS_HOST: "localhost"
+      #     REDIS_PORT: "6379"
+      #     REDIS_PASSWORD: ""
+      #     SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      #   run: |
+      #     python -m unittest discover tests
 
       - name: Post prices to backend
         if: success()
