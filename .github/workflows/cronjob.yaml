@@ -3,6 +3,10 @@ name: Cronjob Workflow
 on:
   schedule:
     - cron: '*/15 * * * *'  # Run every 15 minutes
+  push:
+    branches:
+      - main
+      - development
 
 jobs:
   cronjob:
