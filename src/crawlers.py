@@ -2,7 +2,14 @@
 import bonbast.main
 import requests
 from bs4 import BeautifulSoup
-from data import PriceData
+from data_tools import PriceData
+from datetime import datetime, timezone, timedelta
+
+# Define the offset for Tehran timezone (UTC+3:30)
+tehran_offset = timedelta(hours=3, minutes=30)
+
+# Create a timezone object for Tehran
+tehran_tz = timezone(tehran_offset)
 
 
 def get_bonbast_prices() -> list[PriceData]:
@@ -16,9 +23,27 @@ def get_bonbast_prices() -> list[PriceData]:
     for collection in collections:
         for model in collection:
             try:
-                prices.append(PriceData(code=model.code, name=model.name, source="bonbast", price=model.buy))
+                prices.append(
+                    PriceData(
+                        code=model.code,
+                        name=model.name,
+                        source="bonbast",
+                        price_sell=model.sell,
+                        price_buy=model.buy,
+                        time=datetime.now(tz=tehran_tz).isoformat(),
+                    )
+                )
             except AttributeError:
-                prices.append(PriceData(code=model.code, name=model.name, source="bonbast", price=model.price))
+                prices.append(
+                    PriceData(
+                        code=model.code,
+                        name=model.name,
+                        source="bonbast",
+                        price_sell=float(model.price),
+                        price_buy=float(model.price),
+                        time=datetime.now(tz=tehran_tz).isoformat(),
+                    )
+                )
     return prices
 
 
@@ -40,8 +65,17 @@ def get_tgju_prices() -> list[PriceData]:
             name = sec.get("data-market-nameslug")
             price = sec.get("data-price")
             try:
-                prices.append(PriceData(code=name, name=name, source="tgju", price=price))
-            except:
+                prices.append(
+                    PriceData(
+                        code=name,
+                        name=name,
+                        source="tgju",
+                        price_sell=float(price.replace(",", "")),
+                        price_buy=float(price.replace(",", "")),
+                        time=datetime.now(tz=tehran_tz).isoformat(),
+                    )
+                )
+            except Exception as e:
                 pass
     else:
         print(f"Failed to retrieve webpage: {response.status_code}")

@@ -10,7 +10,7 @@ SECRET_KEY = os.environ["SECRET_KEY"]
 
 
 # Function to generate a token
-def generate_token(username, expiration_duration=timedelta(days=3650)):
+def generate_token(username, expiration_duration=timedelta(days=3650)) -> str:
     # Define the payload (data to be encoded in the token)
     payload = {
         "sub": username,  # Subject (usually the user ID)
@@ -23,7 +23,7 @@ def generate_token(username, expiration_duration=timedelta(days=3650)):
 
 
 # Function to validate a token
-def validate_token(token):
+def validate_token(token) -> bool:
     try:
         # Decode the token using the secret key and algorithm
         payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])

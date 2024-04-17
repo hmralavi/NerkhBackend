@@ -1,8 +1,14 @@
 import unittest
 from settings import *
 import redis
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
+import sys
+
+sys.path.append("src")
+
+from data_tools import PriceData
+from app import store_price_in_db, get_price_from_db, analyze_and_store_price
 
 
 class TestRedisConnection(unittest.TestCase):
@@ -74,7 +80,56 @@ class TestRedisData(unittest.TestCase):
         self.r.set("my_dict_key", json_str)
         stored_json_str = self.r.get("my_dict_key")
         stored_dict = json.loads(stored_json_str)
-        self.assertDictEqual(my_dict, stored_dict)
+        self.assertEqual(my_dict, stored_dict)
+
+    def test_2d_index(self):
+        name = "USD"
+        time = "10.25"
+        price = "14700"
+        key = f"variable:{name}:{time}"
+        self.r.hset(key, "value", price)
+        self.assertEqual(self.r.hget(key, "value").decode("utf-8"), price)
+
+    def test_store_get_price_from_db(self):
+        p = PriceData(
+            code="USD",
+            name="us dollar",
+            source="bonbast",
+            price_sell=70000,
+            price_buy=68000,
+            time=datetime.now().isoformat(),
+        )
+        store_price_in_db(p.code, p, self.r)
+        self.assertEqual(p.model_dump(), get_price_from_db(p.code, self.r).model_dump())
+
+    def test_analyze_and_store(self):
+        # try to insert a price with invalid code, expected to get an error
+        newprice = PriceData(code="fake")
+        with self.assertRaises(ValueError):
+            analyze_and_store_price(newprice, self.r)
+
+        # insert a valid code and retrieve it
+        code = "USD-TMN"
+        newprice = PriceData(code=code, price_sell=70000, price_buy=69000, time="2024-05-02T17:15:00")
+        analyze_and_store_price(newprice, self.r)
+        self.assertEqual(newprice.model_dump(), get_price_from_db(f"{code}:current", self.r).model_dump())
+
+        # insert a valid code while it is already available in the db (same day, 15 mins later)
+        newprice = PriceData(code=code, price_sell=72000, price_buy=70000, time="2024-05-02T17:30:00")
+        analyze_and_store_price(newprice, self.r)
+        self.assertFalse(self.r.exists(f"{code}:yesterday"))  # we shouldn't still have a price for yesterday
+        self.assertEqual(newprice.model_dump(), get_price_from_db(f"{code}:current", self.r).model_dump())
+
+        # insert a valid code while it is already available in the db (next day)
+        newprice_newday = PriceData(code=code, price_sell=75000, price_buy=74000, time="2024-05-03T17:30:00")
+        analyze_and_store_price(newprice_newday, self.r)
+        self.assertTrue(self.r.exists(f"{code}:yesterday"))  # we should have a price for yesterday
+        self.assertEqual(newprice.model_dump(), get_price_from_db(f"{code}:yesterday", self.r).model_dump())
+
+        current_price = get_price_from_db(f"{code}:current", self.r)
+        self.assertNotEqual(newprice_newday.model_dump(), current_price.model_dump())
+        self.assertEqual(current_price.price_sell_change, 3000)
+        self.assertEqual(current_price.price_buy_change, 4000)
 
 
 if __name__ == "__main__":

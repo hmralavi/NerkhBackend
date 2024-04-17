@@ -7,7 +7,7 @@ from typing import List
 
 sys.path.append("src")
 
-from data import PriceData, convert_crawler_results
+from data_tools import PriceData, translate_prices
 from crawlers import get_bonbast_prices, get_tgju_prices
 
 
@@ -43,13 +43,13 @@ def main():
         url = "https://nerkh-api.liara.run/submit_prices"
     elif current_branch == "development":
         url = "https://nerkh-api-dev.liara.run/submit_prices"
-        # url = "http://localhost:8000/submit_prices"
+        url = "http://localhost:8000/submit_prices"
         # url = "http://0.0.0.0:10000/submit_prices"
 
     if url:
         # bonbast_prices = get_bonbast_prices()
         bonbast_prices = get_tgju_prices()
-        converted_prices = convert_crawler_results(bonbast_prices)
+        converted_prices = translate_prices(bonbast_prices)
         # Post the data to the URL
         response = post_data(url, converted_prices)
 
