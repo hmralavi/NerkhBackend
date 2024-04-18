@@ -1,0 +1,46 @@
+name: Cronjob Workflow
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'  # Run every 15 minutes
+
+jobs:
+  cronjob:
+    name: Run tests and then post prices
+    runs-on: ubuntu-latest
+
+    # services:
+    #   redis:
+    #     image: redis:6.0-alpine
+    #     ports:
+    #       - 6379:6379
+    #     options: --name redis-cache
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+  
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.9.19
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      # - name: Run unittest
+      #   env:
+      #     REDIS_HOST: "localhost"
+      #     REDIS_PORT: "6379"
+      #     REDIS_PASSWORD: ""
+      #     SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      #   run: |
+      #     python -m unittest discover tests
+
+      - name: Post prices to backend
+        if: success()
+        env:
+          NERKH_TOKEN: ${{ secrets.NERKH_TOKEN }}
+        run: |
+          python data_submitter/main.py
