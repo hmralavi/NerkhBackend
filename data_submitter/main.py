@@ -48,7 +48,7 @@ def main():
             bonbast_prices = get_bonbast_prices()
             print("bonbast data received successfully.")
             break
-        except Exception as e:
+        except requests.HTTPError as e:
             print(f"attempt {attempts} failed. error: {e}")
             time.sleep(1)
             attempts += 1
