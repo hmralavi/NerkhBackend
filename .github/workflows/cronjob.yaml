@@ -1,7 +1,7 @@
 name: Cronjob Workflow
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # this is needed eventhough we are not doing the manuall run. however, for some reason, the cronjob will fail if we comment this line!
   schedule:
     - cron: '*/15 * * * *'  # Run every 15 minutes
   # push:
