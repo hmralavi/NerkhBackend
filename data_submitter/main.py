@@ -35,6 +35,16 @@ def post_data(url: str, data: List[PriceData]):
     return response
 
 
+def get_public_ip():
+    try:
+        response = requests.get("https://httpbin.org/ip")
+        data = response.json()
+        return data["origin"]
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+
 def main():
     nerkh_server_urls = [
         "https://nerkh-api.liara.run/submit_prices",
@@ -64,4 +74,11 @@ def main():
 
 
 if __name__ == "__main__":
+
+    public_ip = get_public_ip()
+    if public_ip:
+        print("Your public IP address is:", public_ip)
+    else:
+        print("Failed to retrieve public IP address.")
+
     main()
