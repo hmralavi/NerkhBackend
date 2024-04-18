@@ -42,14 +42,14 @@ def main():
         # "http://localhost:8000/submit_prices",
     ]
     attempts = 1
-    while attempts < 1001:
+    while attempts < 100:
         try:
             print(f"attempt {attempts} to get bonbast data.")
             bonbast_prices = get_bonbast_prices()
             print("bonbast data received successfully.")
             break
-        except:
-            print(f"attempt {attempts} failed.")
+        except BaseException as e:
+            print(f"attempt {attempts} failed. error: {e}")
             time.sleep(1)
             attempts += 1
     translate_prices(bonbast_prices)
