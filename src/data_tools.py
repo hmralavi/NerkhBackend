@@ -4,7 +4,85 @@ from datetime import datetime
 import numpy as np
 
 
-MAIN_CODES = ["USD-TMN", "EUR-TMN", "AED-TMN", "GBP-TMN", "TRY-TMN"]
+MAIN_CODES = {
+    "USD-TMN": "US Dollar - IR Toman",
+    "EUR-TMN": "EURO - IR Toman",
+    "GBP-TMN": "British Pound - IR Toman",
+    "CHF-TMN": "Swiss Franc - IR Toman",
+    "CAD-TMN": "Canadian Dollar - IR Toman",
+    "AUD-TMN": "Australian Dollar - IR Toman",
+    "SEK-TMN": "Swedish Krona - IR Toman",
+    "NOK-TMN": "Norwegian Krone - IR Toman",
+    "RUB-TMN": "Russian Ruble - IR Toman",
+    "THB-TMN": "Thai Baht - IR Toman",
+    "SGD-TMN": "Singapore Dollar - IR Toman",
+    "HKD-TMN": "Hong Kong Dollar - IR Toman",
+    "AZN-TMN": "Azerbaijani Manat - IR Toman",
+    "AMD-TMN": "10Armenian Dram - IR Toman",
+    "DKK-TMN": "Danish Krone - IR Toman",
+    "AED-TMN": "UAE Dirham - IR Toman",
+    "JPY-TMN": "10Japanese Yen - IR Toman",
+    "TRY-TMN": "Turkish Lira - IR Toman",
+    "CNY-TMN": "Chinese Yuan - IR Toman",
+    "SAR-TMN": "KSA Riyal - IR Toman",
+    "INR-TMN": "Indian Rupee - IR Toman",
+    "MYR-TMN": "Ringgit - IR Toman",
+    "AFN-TMN": "Afghan Afghani - IR Toman",
+    "KWD-TMN": "Kuwaiti Dinar - IR Toman",
+    "IQD-TMN": "100Iraqi Dinar - IR Toman",
+    "BHD-TMN": "Bahraini Dinar - IR Toman",
+    "OMR-TMN": "Omani Rial - IR Toman",
+    "QAR-TMN": "Qatari Riyal - IR Toman",
+    "SEKKE-EMAMI-TMN": "Sekke Emami Tamam - IR Toman",
+    "SEKKE-GERAMI-TMN": "Sekke 1Gerami - IR Toman",
+    "SEKKE-AZADI-TMN": "Sekke Azadi Tamam - IR Toman",
+    "SEKKE-NIM-TMN": "Sekke Azadi Nim - IR Toman",
+    "SEKKE-ROB-TMN": "Sekke Azadi Rob - IR Toman",
+    "TALA-MESGHAL-TMN": "Tala18 Mesghal - IR Toman",
+    "TALA-GERAM-TMN": "Tala18 Gerami - IR Toman",
+    "OUNCE-USD": "Ounce Jahani - US Dollar",
+    "BITCOIN-USD": "Bitcoin - US Dollar",
+}
+
+bonbast_translate_dict = {
+    "USD": "USD-TMN",
+    "EUR": "EUR-TMN",
+    "GBP": "GBP-TMN",
+    "CHF": "CHF-TMN",
+    "CAD": "CAD-TMN",
+    "AUD": "AUD-TMN",
+    "SEK": "SEK-TMN",
+    "NOK": "NOK-TMN",
+    "RUB": "RUB-TMN",
+    "THB": "THB-TMN",
+    "SGD": "SGD-TMN",
+    "HKD": "HKD-TMN",
+    "AZN": "AZN-TMN",
+    "AMD": "AMD-TMN",
+    "DKK": "DKK-TMN",
+    "AED": "AED-TMN",
+    "JPY": "JPY-TMN",
+    "TRY": "TRY-TMN",
+    "CNY": "CNY-TMN",
+    "SAR": "SAR-TMN",
+    "INR": "INR-TMN",
+    "MYR": "MYR-TMN",
+    "AFN": "AFN-TMN",
+    "KWD": "KWD-TMN",
+    "IQD": "IQD-TMN",
+    "BHD": "BHD-TMN",
+    "OMR": "OMR-TMN",
+    "QAR": "QAR-TMN",
+    "emami1": "SEKKE-EMAMI-TMN",
+    "azadi1g": "SEKKE-GERAMI-TMN",
+    "azadi1": "SEKKE-AZADI-TMN",
+    "azadi1_2": "SEKKE-NIM-TMN",
+    "azadi1_4": "SEKKE-ROB-TMN",
+    "mithqal": "TALA-MESGHAL-TMN",
+    "gol18": "TALA-GERAM-TMN",
+    "ounce": "OUNCE-USD",
+    "bitcoin": "BITCOIN-USD",
+}
 
 
 class PriceData(BaseModel):
@@ -18,8 +96,12 @@ class PriceData(BaseModel):
     time: str = ""  # datetime.isoformat: "yyyy-mm-ddThh:mm:ss.ms", for example: "2024-04-17T15:34:27.559598"
 
 
-def translate_prices(prices: List[PriceData]) -> List[PriceData]:
-    return prices
+def translate_prices(prices: List[PriceData]):
+    for price in prices:
+        if price.source == "bonbast":
+            if price.code in bonbast_translate_dict:
+                price.code = bonbast_translate_dict[price.code]
+                price.name = MAIN_CODES[price.code]
 
 
 def is_prices_same_day(price1: PriceData, price2: PriceData):

@@ -3,10 +3,6 @@ name: Cronjob Workflow
 on:
   schedule:
     - cron: '*/15 * * * *'  # Run every 15 minutes
-  # push:
-  #   branches:
-  #     - main
-  #     - development
 
 jobs:
   cronjob:
@@ -23,8 +19,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        with:
-          ref: development
   
       - name: Set up Python
         uses: actions/setup-python@v3
