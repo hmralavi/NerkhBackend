@@ -38,7 +38,7 @@ def main():
     urls = [
         "https://nerkh-api.liara.run/submit_prices",
         "https://nerkh-api-dev.liara.run/submit_prices",
-        "http://localhost:8000/submit_prices",
+        # "http://localhost:8000/submit_prices",
     ]
     bonbast_prices = get_bonbast_prices()
     translate_prices(bonbast_prices)

@@ -12,7 +12,7 @@ tehran_offset = timedelta(hours=3, minutes=30)
 tehran_tz = timezone(tehran_offset)
 
 
-def get_bonbast_prices(check_website_is_available_first:bool=False) -> list[PriceData]:
+def get_bonbast_prices(check_website_is_available_first: bool = False) -> list[PriceData]:
     if check_website_is_available_first:
         try:
             requests.get("https://bonbast.com", timeout=20)
