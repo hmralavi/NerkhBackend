@@ -1,4 +1,4 @@
-name: Cronjob Workflow
+name: Cronjob Workflow (submit bonbsat prices)
 
 on:
   workflow_dispatch:  # this is needed eventhough we are not doing the manuall run. however, for some reason, the cronjob will fail if we comment this line!

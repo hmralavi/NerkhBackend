@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Depends, status, Header
-from typing import List, Optional
+from typing import List
 from data_tools import PriceData, MAIN_CODES, is_prices_same_day
 import redis
 from settings import *
@@ -118,11 +118,17 @@ def analyze_and_store_price(newprice: PriceData, redisdb: redis.Redis):
 
 @app.get("/")
 def index() -> str:
+    """
+    Home Page
+    """
     return "Nerkh API. see /docs for details."
 
 
 @app.post("/submit_prices")
 def submit_prices(prices: List[PriceData], authenticated: bool = Depends(authenticate_token)):
+    """
+    Submit prices to the server. you need a token for this action.
+    """
     n_success = 0
     for price in prices:
         try:
@@ -135,7 +141,26 @@ def submit_prices(prices: List[PriceData], authenticated: bool = Depends(authent
 
 
 @app.post("/get_prices")
-def get_prices(codes: Optional[List[str]] = []) -> List[PriceData]:
+def get_prices(codes: List[str] = []) -> List[PriceData]:
+    """
+    Gets prices from the server.
+
+    You can get all prices by passing as an empty list. for example:
+
+    `curl -X 'POST' 'https://nerkh-api-dev.liara.run/get_prices' -H 'accept: application/json' -H 'Content-Type: application/json' -d '[]'`
+
+    or get prices for specific assets by passing their codes. for example:
+
+    `curl -X 'POST' 'https://nerkh-api-dev.liara.run/get_prices' -H 'accept: application/json' -H 'Content-Type: application/json' -d '["USD-TMN", "EUR-TMN"]'`
+
+    Raises:
+
+        HTTPException 404: if one of the input codes is invalid, you'll get this error.
+
+    Returns:
+
+        List[PriceData]: a json file containing a list of prices.
+    """
     prices = []
     if codes:
         for c in codes:
