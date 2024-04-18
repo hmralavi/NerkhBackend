@@ -2,10 +2,9 @@ name: Test and Deploy to Liara
 
 on: 
   workflow_dispatch:
-  # push:
-  #   branches:
-  #     - main
-  #     - development
+  push:
+    branches:
+      - development
 
 jobs:
   test:
