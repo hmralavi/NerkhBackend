@@ -5,6 +5,7 @@ import os
 import subprocess
 from typing import List
 import time
+from fastapi import FastAPI
 
 sys.path.append("src")
 
@@ -45,6 +46,10 @@ def get_public_ip():
         return None
 
 
+app = FastAPI()
+
+
+@app.get("/main")
 def main():
     nerkh_server_urls = [
         "https://nerkh-api.liara.run/submit_prices",
@@ -52,7 +57,7 @@ def main():
         # "http://localhost:8000/submit_prices",
     ]
     attempts = 1
-    while attempts < 100:
+    while attempts < 10:
         try:
             print(f"attempt {attempts} to get bonbast data.")
             bonbast_prices = get_bonbast_prices()
@@ -71,6 +76,8 @@ def main():
             print(f"Data posted successfully to {url}. Status code: {response.status_code}, response: {response.text}")
         else:
             print(f"Failed to post data to {url}. Status code: {response.status_code}, response: {response.text}")
+
+    return "ok"
 
 
 if __name__ == "__main__":
