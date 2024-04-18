@@ -12,12 +12,13 @@ tehran_offset = timedelta(hours=3, minutes=30)
 tehran_tz = timezone(tehran_offset)
 
 
-def get_bonbast_prices() -> list[PriceData]:
-    try:
-        requests.get("https://bonbast.com", timeout=20)
-    except requests.exceptions.ConnectTimeout as e:
-        err = PriceData(name=str(e), code="ERROR", source="", price=0)
-        return [err]
+def get_bonbast_prices(check_website_is_available_first:bool=False) -> list[PriceData]:
+    if check_website_is_available_first:
+        try:
+            requests.get("https://bonbast.com", timeout=20)
+        except requests.exceptions.ConnectTimeout as e:
+            err = PriceData(name=str(e), code="ERROR", source="", price=0)
+            return [err]
     collections = bonbast.main.get_prices()
     prices = []
     for collection in collections:
