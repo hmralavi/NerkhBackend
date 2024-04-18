@@ -145,7 +145,7 @@ def get_prices(codes: List[str] = []) -> List[PriceData]:
     """
     Gets prices from the server.
 
-    You can get all prices by passing as an empty list. for example:
+    You can get all prices by passing an empty list. for example:
 
     `curl -X 'POST' 'https://nerkh-api-dev.liara.run/get_prices' -H 'accept: application/json' -H 'Content-Type: application/json' -d '[]'`
 
