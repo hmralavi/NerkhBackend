@@ -20,9 +20,7 @@ NERKH_TOKEN = os.environ["NERKH_TOKEN"]
 
 def get_current_branch():
     try:
-        result = subprocess.run(
-            ["git", "rev-parse", "--abbrev-ref", "HEAD"], capture_output=True, text=True, check=True
-        )
+        result = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], capture_output=True, text=True, check=True)
         return result.stdout.strip()
     except subprocess.CalledProcessError:
         # Handle the case where Git is not available or the command fails
@@ -52,9 +50,10 @@ app = FastAPI()
 @app.get("/main")
 def main():
     nerkh_server_urls = [
-        "https://nerkh-api.liara.run/submit_prices",
-        "https://nerkh-api-dev.liara.run/submit_prices",
-        # "http://localhost:8000/submit_prices",
+        "https://nerkh-api.liara.run/submit_prices",  # for liara
+        "https://nerkh-api-dev.liara.run/submit_prices",  # for liara-dev
+        # "http://localhost:8000/submit_prices", # for local machine
+        # "http://0.0.0.0:10000/submit_prices", # for docker
     ]
     attempts = 1
     while attempts < 10:
