@@ -4,48 +4,55 @@ from datetime import datetime
 import numpy as np
 
 
+# Supported asset categories
+_CURRENCY = "currency"
+_COMMODITY = "commodity"
+_DIGITAL_CURRENCY = "digital_currency"
+_CAR = "car"
+
+
 MAIN_CODES = {
     # Currencies
-    "USD-TMN": "US Dollar - IR Toman",  # code: name(description)
-    "EUR-TMN": "EURO - IR Toman",
-    "GBP-TMN": "British Pound - IR Toman",
-    "CHF-TMN": "Swiss Franc - IR Toman",
-    "CAD-TMN": "Canadian Dollar - IR Toman",
-    "AUD-TMN": "Australian Dollar - IR Toman",
-    "SEK-TMN": "Swedish Krona - IR Toman",
-    "NOK-TMN": "Norwegian Krone - IR Toman",
-    "RUB-TMN": "Russian Ruble - IR Toman",
-    "THB-TMN": "Thai Baht - IR Toman",
-    "SGD-TMN": "Singapore Dollar - IR Toman",
-    "HKD-TMN": "Hong Kong Dollar - IR Toman",
-    "AZN-TMN": "Azerbaijani Manat - IR Toman",
-    "AMD-TMN": "10Armenian Dram - IR Toman",
-    "DKK-TMN": "Danish Krone - IR Toman",
-    "AED-TMN": "UAE Dirham - IR Toman",
-    "JPY-TMN": "10Japanese Yen - IR Toman",
-    "TRY-TMN": "Turkish Lira - IR Toman",
-    "CNY-TMN": "Chinese Yuan - IR Toman",
-    "SAR-TMN": "KSA Riyal - IR Toman",
-    "INR-TMN": "Indian Rupee - IR Toman",
-    "MYR-TMN": "Ringgit - IR Toman",
-    "AFN-TMN": "Afghan Afghani - IR Toman",
-    "KWD-TMN": "Kuwaiti Dinar - IR Toman",
-    "IQD-TMN": "100Iraqi Dinar - IR Toman",
-    "BHD-TMN": "Bahraini Dinar - IR Toman",
-    "OMR-TMN": "Omani Rial - IR Toman",
-    "QAR-TMN": "Qatari Riyal - IR Toman",
+    "USD-TMN": (_CURRENCY, "US Dollar - IR Toman"),  # code: (category, description)
+    "EUR-TMN": (_CURRENCY, "EURO - IR Toman"),
+    "GBP-TMN": (_CURRENCY, "British Pound - IR Toman"),
+    "CHF-TMN": (_CURRENCY, "Swiss Franc - IR Toman"),
+    "CAD-TMN": (_CURRENCY, "Canadian Dollar - IR Toman"),
+    "AUD-TMN": (_CURRENCY, "Australian Dollar - IR Toman"),
+    "SEK-TMN": (_CURRENCY, "Swedish Krona - IR Toman"),
+    "NOK-TMN": (_CURRENCY, "Norwegian Krone - IR Toman"),
+    "RUB-TMN": (_CURRENCY, "Russian Ruble - IR Toman"),
+    "THB-TMN": (_CURRENCY, "Thai Baht - IR Toman"),
+    "SGD-TMN": (_CURRENCY, "Singapore Dollar - IR Toman"),
+    "HKD-TMN": (_CURRENCY, "Hong Kong Dollar - IR Toman"),
+    "AZN-TMN": (_CURRENCY, "Azerbaijani Manat - IR Toman"),
+    "AMD-TMN": (_CURRENCY, "10Armenian Dram - IR Toman"),
+    "DKK-TMN": (_CURRENCY, "Danish Krone - IR Toman"),
+    "AED-TMN": (_CURRENCY, "UAE Dirham - IR Toman"),
+    "JPY-TMN": (_CURRENCY, "10Japanese Yen - IR Toman"),
+    "TRY-TMN": (_CURRENCY, "Turkish Lira - IR Toman"),
+    "CNY-TMN": (_CURRENCY, "Chinese Yuan - IR Toman"),
+    "SAR-TMN": (_CURRENCY, "KSA Riyal - IR Toman"),
+    "INR-TMN": (_CURRENCY, "Indian Rupee - IR Toman"),
+    "MYR-TMN": (_CURRENCY, "Ringgit - IR Toman"),
+    "AFN-TMN": (_CURRENCY, "Afghan Afghani - IR Toman"),
+    "KWD-TMN": (_CURRENCY, "Kuwaiti Dinar - IR Toman"),
+    "IQD-TMN": (_CURRENCY, "100Iraqi Dinar - IR Toman"),
+    "BHD-TMN": (_CURRENCY, "Bahraini Dinar - IR Toman"),
+    "OMR-TMN": (_CURRENCY, "Omani Rial - IR Toman"),
+    "QAR-TMN": (_CURRENCY, "Qatari Riyal - IR Toman"),
     # Assets
-    "SEKKE-EMAMI-TMN": "Sekke Emami Tamam - IR Toman",
-    "SEKKE-GERAMI-TMN": "Sekke 1Gerami - IR Toman",
-    "SEKKE-AZADI-TMN": "Sekke Azadi Tamam - IR Toman",
-    "SEKKE-NIM-TMN": "Sekke Azadi Nim - IR Toman",
-    "SEKKE-ROB-TMN": "Sekke Azadi Rob - IR Toman",
-    "TALA-MESGHAL-TMN": "Tala18 Mesghal - IR Toman",
-    "TALA-GERAM-TMN": "Tala18 Gerami - IR Toman",
-    "OUNCE-USD": "Ounce Jahani - US Dollar",
-    "BITCOIN-USD": "Bitcoin - US Dollar",
+    "SEKKE-EMAMI-TMN": (_COMMODITY, "Sekke Emami Tamam - IR Toman"),
+    "SEKKE-GERAMI-TMN": (_COMMODITY, "Sekke 1Gerami - IR Toman"),
+    "SEKKE-AZADI-TMN": (_COMMODITY, "Sekke Azadi Tamam - IR Toman"),
+    "SEKKE-NIM-TMN": (_COMMODITY, "Sekke Azadi Nim - IR Toman"),
+    "SEKKE-ROB-TMN": (_COMMODITY, "Sekke Azadi Rob - IR Toman"),
+    "TALA-MESGHAL-TMN": (_COMMODITY, "Tala18 Mesghal - IR Toman"),
+    "TALA-GERAM-TMN": (_COMMODITY, "Tala18 Gerami - IR Toman"),
+    "OUNCE-USD": (_COMMODITY, "Ounce Jahani - US Dollar"),
+    "BITCOIN-USD": (_DIGITAL_CURRENCY, "Bitcoin - US Dollar"),
     # Cars
-    "CAR-PEUGEOT-PARS": " Peugeot Pars - IR Toman",
+    "CAR-PEUGEOT-PARS": (_CAR, "Peugeot Pars - IR Toman"),
 }
 
 bonbast_translate_dict = {
@@ -94,14 +101,15 @@ iranjib_transtale_dict = {
 
 
 class PriceData(BaseModel):
-    code: str = ""
-    name: str = ""
-    source: str = ""
-    price_sell: float = 0
-    price_buy: float = 0
-    price_sell_change: float = 0
-    price_buy_change: float = 0
-    time: str = ""  # datetime.isoformat: "yyyy-mm-ddThh:mm:ss.ms", for example: "2024-04-17T15:34:27.559598"
+    code: str = ""  # code of the asset, for example, USD-TMN.
+    category: str = ""  # category of the asset, currently supported categories: cuurency, commodity, digital_currency, car
+    description: str = ""  # a description about the asset.
+    source: str = ""  # source of the data.
+    price1: float = 0  # always the higher price, for example, sell price for currency and market price for car.
+    price2: float = 0  # always the lower price, for example, buy price for currency and factory price for car.
+    price1_change: float = 0  # price1 change compared to yesterday
+    price2_change: float = 0  # price1 change compared to yesterday
+    time: str = ""  # time of the data in format of datetime.isoformat: "yyyy-mm-ddThh:mm:ss.ms"
 
 
 def translate_prices(prices: List[PriceData], prune: bool = True) -> List[PriceData]:
@@ -125,7 +133,8 @@ def translate_prices(prices: List[PriceData], prune: bool = True) -> List[PriceD
         if p.source in source_dict.keys():
             if p.code in source_dict[p.source].keys():
                 p.code = source_dict[p.source][p.code]
-                p.name = MAIN_CODES[p.code]
+                p.category = MAIN_CODES[p.code][0]
+                p.description = MAIN_CODES[p.code][1]
                 translated_prices.append(p)
             else:
                 if not prune:

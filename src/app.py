@@ -90,7 +90,7 @@ def analyze_and_store_price(newprice: PriceData, redisdb: redis.Redis):
     newprice = newprice.model_copy()
     code = newprice.code
     if code not in MAIN_CODES:
-        raise KeyError(f"code '{code}' not valid. valid codes: {MAIN_CODES}")
+        raise KeyError(f"code '{code}' not valid. valid codes: {MAIN_CODES.keys()}")
 
     # get current price in db
     current_price = newprice.model_copy()
@@ -165,6 +165,20 @@ def get_prices(codes: List[str] = []) -> Union[List[PriceData], str]:
     Returns:
 
         Union[List[PriceData], str]: a json file containing a list of prices. if an error occurs, you get a string as the error message.
+        each element of the list is an instance of the PriceData class which contains these fields:
+
+        ```
+        code: code of the asset, for example, USD-TMN.
+        category: category of the asset, currently 4 supported categories: cuurency, commodity, digital_currency, car.
+        description: a description about the asset.
+        source: source of the data.
+        price1: always the higher price, for example, sell price for currency and market price for car.
+        price2: always the lower price, for example, buy price for currency and factory price for car.
+        price1_change: price1 change compared to yesterday.
+        price2_change: price1 change compared to yesterday.
+        time: time of the data in format of datetime.isoformat: "yyyy-mm-ddThh:mm:ss.ms".
+        ```
+
     """
     prices = []
     if not codes:
@@ -173,7 +187,7 @@ def get_prices(codes: List[str] = []) -> Union[List[PriceData], str]:
         try:
             prices.append(get_price_from_db(f"{c}:current", app.state.redis))
         except KeyError as e:
-            return str(e) + f"\nValid codes: {MAIN_CODES}."
+            return str(e) + f"\nValid codes: {MAIN_CODES.keys()}."
 
     return prices
 

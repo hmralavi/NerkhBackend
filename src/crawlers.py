@@ -1,5 +1,9 @@
-# TODO: use httpx.AsyncClient (pip install httpx) instead of requests.get
+"""
+TODO: use httpx.AsyncClient (pip install httpx) instead of requests.get
+"""
+
 import bonbast.main
+import bonbast.models
 import requests
 from bs4 import BeautifulSoup
 from data_tools import PriceData, translate_prices
@@ -17,31 +21,27 @@ def get_bonbast_prices(check_website_is_available_first: bool = False) -> list[P
         try:
             requests.get("https://bonbast.com", timeout=20)
         except requests.exceptions.ConnectTimeout as e:
-            err = PriceData(name=str(e), code="ERROR", source="", price=0)
-            return [err]
+            return [PriceData(code="ERROR", description=str(e))]
     collections = bonbast.main.get_prices()
     prices = []
     for collection in collections:
         for model in collection:
-            try:
+            if isinstance(model, bonbast.models.Currency) or isinstance(model, bonbast.models.Coin):
                 prices.append(
                     PriceData(
                         code=model.code,
-                        name=model.name,
                         source="bonbast",
-                        price_sell=model.sell,
-                        price_buy=model.buy,
+                        price1=model.sell,
+                        price2=model.buy,
                         time=datetime.now(tz=tehran_tz).isoformat(),
                     )
                 )
-            except AttributeError:
+            elif isinstance(model, bonbast.models.Gold):
                 prices.append(
                     PriceData(
                         code=model.code,
-                        name=model.name,
                         source="bonbast",
-                        price_sell=float(model.price),
-                        price_buy=float(model.price),
+                        price1=float(model.price),
                         time=datetime.now(tz=tehran_tz).isoformat(),
                     )
                 )
@@ -70,10 +70,9 @@ def get_tgju_prices() -> list[PriceData]:
                 prices.append(
                     PriceData(
                         code=name,
-                        name="",
                         source="tgju",
-                        price_sell=float(price.replace(",", "")),
-                        price_buy=float(price.replace(",", "")),
+                        price1=float(price.replace(",", "")),
+                        price2=float(price.replace(",", "")),
                         time=datetime.now(tz=tehran_tz).isoformat(),
                     )
                 )
@@ -96,18 +95,16 @@ def get_car_prices():
         for tr in soup.find_all("tr"):
             try:
                 code = tr.find("td", class_="entryrtl").a.text
-                pr_market = float(tr.find_next("span", class_="lastprice").text.replace(",", ""))
-                pr_factory = float(tr.find_next("span", class_="lastprice").text.replace(",", ""))
+                pr = [float(p.text.replace(",", "")) for p in tr.find_all("span", class_="lastprice")]
             except AttributeError:
                 continue
             try:
                 prices.append(
                     PriceData(
                         code=code,
-                        name="",
                         source="iranjib",
-                        price_sell=pr_market,
-                        price_buy=pr_factory,
+                        price1=pr[0],
+                        price2=pr[1],
                         time=datetime.now(tz=tehran_tz).isoformat(),
                     )
                 )
@@ -120,5 +117,5 @@ def get_car_prices():
 
 
 # prices = get_car_prices()
-# prices = translate_prices(prices, True)
+# prices = get_bonbast_prices()
 # print(prices)
