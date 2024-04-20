@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Depends, status, Header
-from typing import List
+from typing import List, Union
 from data_tools import PriceData, MAIN_CODES, is_prices_same_day
 import redis
 from settings import *
@@ -56,8 +56,10 @@ def get_price_from_db(key: str, redisdb: redis.Redis) -> PriceData:
     Returns:
         PriceData: _description_
     """
-
-    price = PriceData(**json.loads(redisdb.get(key)))
+    if redisdb.exists(key):
+        price = PriceData(**json.loads(redisdb.get(key)))
+    else:
+        raise KeyError(f"Key '{key}' does not exist in the database.")
     return price
 
 
@@ -88,7 +90,7 @@ def analyze_and_store_price(newprice: PriceData, redisdb: redis.Redis):
     newprice = newprice.model_copy()
     code = newprice.code
     if code not in MAIN_CODES:
-        raise ValueError(f"code '{code}' not valid. valid codes: {MAIN_CODES}")
+        raise KeyError(f"code '{code}' not valid. valid codes: {MAIN_CODES}")
 
     # get current price in db
     current_price = newprice.model_copy()
@@ -109,8 +111,10 @@ def analyze_and_store_price(newprice: PriceData, redisdb: redis.Redis):
 
     # calculate price changes compared to yesterday
     if yesterday_price:
-        newprice.price_buy_change = newprice.price_buy - yesterday_price.price_buy
-        newprice.price_sell_change = newprice.price_sell - yesterday_price.price_sell
+        if newprice.price_sell_change == 0:
+            newprice.price_sell_change = newprice.price_sell - yesterday_price.price_sell
+        if newprice.price_buy_change == 0:
+            newprice.price_buy_change = newprice.price_buy - yesterday_price.price_buy
 
     # store the new price in db
     store_price_in_db(current_key, newprice, redisdb)
@@ -130,18 +134,19 @@ def submit_prices(prices: List[PriceData], authenticated: bool = Depends(authent
     Submit prices to the server. you need a token for this action.
     """
     n_success = 0
+    rejected = []
     for price in prices:
         try:
             analyze_and_store_price(price, app.state.redis)
             n_success += 1
-        except:
-            pass
+        except KeyError:
+            rejected.append(price.code)
 
-    return f"{n_success}/{len(prices)} prices stored successfully."
+    return f"{n_success}/{len(prices)} prices stored successfully. rejected: {rejected}."
 
 
 @app.post("/get_prices")
-def get_prices(codes: List[str] = []) -> List[PriceData]:
+def get_prices(codes: List[str] = []) -> Union[List[PriceData], str]:
     """
     Gets prices from the server.
 
@@ -159,18 +164,16 @@ def get_prices(codes: List[str] = []) -> List[PriceData]:
 
     Returns:
 
-        List[PriceData]: a json file containing a list of prices.
+        Union[List[PriceData], str]: a json file containing a list of prices. if an error occurs, you get a string as the error message.
     """
     prices = []
-    if codes:
-        for c in codes:
-            if c not in MAIN_CODES:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND, detail=f"code '{c}' is not valid. valid codes: {MAIN_CODES}."
-                )
+    if not codes:
+        codes = MAIN_CODES
+    for c in codes:
+        try:
             prices.append(get_price_from_db(f"{c}:current", app.state.redis))
-    else:
-        prices = [get_price_from_db(f"{c}:current", app.state.redis) for c in MAIN_CODES]
+        except KeyError as e:
+            return str(e) + f"\nValid codes: {MAIN_CODES}."
 
     return prices
 

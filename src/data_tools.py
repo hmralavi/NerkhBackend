@@ -5,7 +5,8 @@ import numpy as np
 
 
 MAIN_CODES = {
-    "USD-TMN": "US Dollar - IR Toman",
+    # Currencies
+    "USD-TMN": "US Dollar - IR Toman",  # code: name(description)
     "EUR-TMN": "EURO - IR Toman",
     "GBP-TMN": "British Pound - IR Toman",
     "CHF-TMN": "Swiss Franc - IR Toman",
@@ -33,6 +34,7 @@ MAIN_CODES = {
     "BHD-TMN": "Bahraini Dinar - IR Toman",
     "OMR-TMN": "Omani Rial - IR Toman",
     "QAR-TMN": "Qatari Riyal - IR Toman",
+    # Assets
     "SEKKE-EMAMI-TMN": "Sekke Emami Tamam - IR Toman",
     "SEKKE-GERAMI-TMN": "Sekke 1Gerami - IR Toman",
     "SEKKE-AZADI-TMN": "Sekke Azadi Tamam - IR Toman",
@@ -42,6 +44,8 @@ MAIN_CODES = {
     "TALA-GERAM-TMN": "Tala18 Gerami - IR Toman",
     "OUNCE-USD": "Ounce Jahani - US Dollar",
     "BITCOIN-USD": "Bitcoin - US Dollar",
+    # Cars
+    "CAR-PEUGEOT-PARS": " Peugeot Pars - IR Toman",
 }
 
 bonbast_translate_dict = {
@@ -84,6 +88,10 @@ bonbast_translate_dict = {
     "bitcoin": "BITCOIN-USD",
 }
 
+iranjib_transtale_dict = {
+    "پژو پارس": "CAR-PEUGEOT-PARS",
+}
+
 
 class PriceData(BaseModel):
     code: str = ""
@@ -96,12 +104,36 @@ class PriceData(BaseModel):
     time: str = ""  # datetime.isoformat: "yyyy-mm-ddThh:mm:ss.ms", for example: "2024-04-17T15:34:27.559598"
 
 
-def translate_prices(prices: List[PriceData]):
+def translate_prices(prices: List[PriceData], prune: bool = True) -> List[PriceData]:
+    """
+    translate PriceData.code and PriceData.name according to the translation dicts.
+
+    Args:
+        prices (List[PriceData]): list of price data.
+        prune (bool, optional): eliminate the prices whose codes/source does not exist in our dictionaries. Defaults to True.
+
+    Returns:
+        List[PriceData]: translated list of the price data.
+    """
+    source_dict = {
+        "bonbast": bonbast_translate_dict,
+        "iranjib": iranjib_transtale_dict,
+    }
+    translated_prices = []
     for price in prices:
-        if price.source == "bonbast":
-            if price.code in bonbast_translate_dict:
-                price.code = bonbast_translate_dict[price.code]
-                price.name = MAIN_CODES[price.code]
+        p = price.model_copy()
+        if p.source in source_dict.keys():
+            if p.code in source_dict[p.source].keys():
+                p.code = source_dict[p.source][p.code]
+                p.name = MAIN_CODES[p.code]
+                translated_prices.append(p)
+            else:
+                if not prune:
+                    translated_prices.append(p)
+        else:
+            if not prune:
+                translated_prices.append(p)
+    return translated_prices
 
 
 def is_prices_same_day(price1: PriceData, price2: PriceData):

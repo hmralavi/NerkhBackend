@@ -105,7 +105,7 @@ class TestRedisData(unittest.TestCase):
     def test_analyze_and_store(self):
         # try to insert a price with invalid code, expected to get an error
         newprice = PriceData(code="fake")
-        with self.assertRaises(ValueError):
+        with self.assertRaises(KeyError):
             analyze_and_store_price(newprice, self.r)
 
         # insert a valid code and retrieve it

@@ -3,7 +3,15 @@ import sys
 
 sys.path.append("src")
 
-from data_tools import quantize_datetime, is_prices_same_day, PriceData
+from data_tools import (
+    quantize_datetime,
+    is_prices_same_day,
+    PriceData,
+    MAIN_CODES,
+    bonbast_translate_dict,
+    iranjib_transtale_dict,
+    translate_prices,
+)
 from datetime import datetime, timezone, timedelta
 
 
@@ -69,6 +77,49 @@ class TestDateTools(unittest.TestCase):
         p1 = PriceData(time=(d - timedelta(hours=1, minutes=1)).isoformat())
         p2 = PriceData(time=d.isoformat())
         self.assertFalse(is_prices_same_day(p1, p2))
+
+
+class TestTranslator(unittest.TestCase):
+    def test_bonbast_dict(self):
+        """
+        check if all values in the dict is available in the MAIN_CODES
+        """
+        for k in bonbast_translate_dict.keys():
+            self.assertTrue(
+                bonbast_translate_dict[k] in MAIN_CODES,
+                f"bonbast_translate_dict value {bonbast_translate_dict[k]} not in the MAIN_CODES.",
+            )
+
+    def test_iranjib_dict(self):
+        """
+        check if all values in the dict is available in the MAIN_CODES
+        """
+        for k in iranjib_transtale_dict.keys():
+            self.assertTrue(
+                iranjib_transtale_dict[k] in MAIN_CODES,
+                f"iranjib_translate_dict value {iranjib_transtale_dict[k]} not in the MAIN_CODES.",
+            )
+
+    def test_transtalte_prices_func(self):
+        """
+        testing the transtale_prices function.
+        """
+        prices = [
+            PriceData(code="USD___", source="bonbast", price_buy=1),
+            PriceData(code="USD", source="bonbast", price_buy=2),
+            PriceData(code="USD", source="bonbast___", price_buy=3),
+        ]
+        translated = translate_prices(prices=prices, prune=True)
+        self.assertEqual(len(translated), 1)
+        self.assertEqual(translated[0].price_buy, 2)
+        self.assertEqual(translated[0].code, "USD-TMN")
+
+        translated_no_prune = translate_prices(prices=prices, prune=False)
+        self.assertEqual(len(translated_no_prune), 3)
+        self.assertEqual(translated_no_prune[0].price_buy, 1)
+        self.assertEqual(translated_no_prune[2].price_buy, 3)
+        self.assertEqual(translated_no_prune[0].code, "USD___")
+        self.assertEqual(translated_no_prune[2].source, "bonbast___")
 
 
 if __name__ == "__main__":
