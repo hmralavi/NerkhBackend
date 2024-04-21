@@ -111,10 +111,10 @@ def analyze_and_store_price(newprice: PriceData, redisdb: redis.Redis):
 
     # calculate price changes compared to yesterday
     if yesterday_price:
-        if newprice.price_sell_change == 0:
-            newprice.price_sell_change = newprice.price_sell - yesterday_price.price_sell
-        if newprice.price_buy_change == 0:
-            newprice.price_buy_change = newprice.price_buy - yesterday_price.price_buy
+        if newprice.price1_change == 0:
+            newprice.price1_change = newprice.price1 - yesterday_price.price1
+        if newprice.price2_change == 0:
+            newprice.price2_change = newprice.price2 - yesterday_price.price2
 
     # store the new price in db
     store_price_in_db(current_key, newprice, redisdb)

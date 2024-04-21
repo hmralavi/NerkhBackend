@@ -51,8 +51,14 @@ MAIN_CODES = {
     "TALA-GERAM-TMN": (_COMMODITY, "Tala18 Gerami - IR Toman"),
     "OUNCE-USD": (_COMMODITY, "Ounce Jahani - US Dollar"),
     "BITCOIN-USD": (_DIGITAL_CURRENCY, "Bitcoin - US Dollar"),
-    # Cars
-    "CAR-PEUGEOT-PARS": (_CAR, "Peugeot Pars - IR Toman"),
+    # Cars Irankhodro
+    "CAR-ARISAN": (_CAR, "ایرانخودرو وانت آریسان (ارتقاء)"),
+    "CAR-SOREN": (_CAR, "ایرانخودرو سورن پلاس موتور XU7P"),
+    "CAR-DENA": (_CAR, "دنا پلاس توربو 6 سرعته (ارتقاء)"),
+    "CAR-PEUGEOT-PARS": (_CAR, "پژو پارس"),
+    # Cars Saipa
+    "CAR-ATLAS": (_CAR, "سایپا اطلس"),
+    "CAR-SAINA-S": (_CAR, "سایپا ساینا اس"),
 }
 
 bonbast_translate_dict = {
@@ -96,7 +102,14 @@ bonbast_translate_dict = {
 }
 
 iranjib_transtale_dict = {
+    # Irankhodro
+    "وانت آریسان (ارتقاء)": "CAR-ARISAN",
+    "سورن پلاس موتور XU7P": "CAR-SOREN",
+    "دنا پلاس توربو 6 سرعته (ارتقاء)": "CAR-DENA",
     "پژو پارس": "CAR-PEUGEOT-PARS",
+    # Saipa
+    "اطلس": "CAR-ATLAS",
+    "ساینا S": "CAR-SAINA-S",
 }
 
 

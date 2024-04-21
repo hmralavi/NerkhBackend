@@ -105,19 +105,19 @@ class TestTranslator(unittest.TestCase):
         testing the transtale_prices function.
         """
         prices = [
-            PriceData(code="USD___", source="bonbast", price_buy=1),
-            PriceData(code="USD", source="bonbast", price_buy=2),
-            PriceData(code="USD", source="bonbast___", price_buy=3),
+            PriceData(code="USD___", source="bonbast", price1=1),
+            PriceData(code="USD", source="bonbast", price1=2),
+            PriceData(code="USD", source="bonbast___", price1=3),
         ]
         translated = translate_prices(prices=prices, prune=True)
         self.assertEqual(len(translated), 1)
-        self.assertEqual(translated[0].price_buy, 2)
+        self.assertEqual(translated[0].price1, 2)
         self.assertEqual(translated[0].code, "USD-TMN")
 
         translated_no_prune = translate_prices(prices=prices, prune=False)
         self.assertEqual(len(translated_no_prune), 3)
-        self.assertEqual(translated_no_prune[0].price_buy, 1)
-        self.assertEqual(translated_no_prune[2].price_buy, 3)
+        self.assertEqual(translated_no_prune[0].price1, 1)
+        self.assertEqual(translated_no_prune[2].price1, 3)
         self.assertEqual(translated_no_prune[0].code, "USD___")
         self.assertEqual(translated_no_prune[2].source, "bonbast___")
 

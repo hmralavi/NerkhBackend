@@ -8,6 +8,7 @@ import requests
 from bs4 import BeautifulSoup
 from data_tools import PriceData, translate_prices
 from datetime import datetime, timezone, timedelta
+from typing import List
 
 # Define the offset for Tehran timezone (UTC+3:30)
 tehran_offset = timedelta(hours=3, minutes=30)
@@ -16,7 +17,7 @@ tehran_offset = timedelta(hours=3, minutes=30)
 tehran_tz = timezone(tehran_offset)
 
 
-def get_bonbast_prices(check_website_is_available_first: bool = False) -> list[PriceData]:
+def get_bonbast_prices(check_website_is_available_first: bool = False) -> List[PriceData]:
     if check_website_is_available_first:
         try:
             requests.get("https://bonbast.com", timeout=20)
@@ -49,7 +50,7 @@ def get_bonbast_prices(check_website_is_available_first: bool = False) -> list[P
     return prices
 
 
-def get_tgju_prices() -> list[PriceData]:
+def get_tgju_prices() -> List[PriceData]:
     url = "https://www.tgju.org/currency"
     response = requests.get(url)
     prices = []
@@ -84,7 +85,10 @@ def get_tgju_prices() -> list[PriceData]:
     return prices
 
 
-def get_car_prices():
+def get_car_prices() -> List[PriceData]:
+    """
+    get car price from iranjib.ir
+    """
     url = "https://www.iranjib.ir/showgroup/45/%D9%82%DB%8C%D9%85%D8%AA-%D8%AE%D9%88%D8%AF%D8%B1%D9%88-%D8%AA%D9%88%D9%84%DB%8C%D8%AF-%D8%AF%D8%A7%D8%AE%D9%84/"
     response = requests.get(url)
     prices = []
@@ -94,17 +98,22 @@ def get_car_prices():
         soup = BeautifulSoup(response.text, "html.parser")
         for tr in soup.find_all("tr"):
             try:
-                code = tr.find("td", class_="entryrtl").a.text
-                pr = [float(p.text.replace(",", "")) for p in tr.find_all("span", class_="lastprice")]
-            except AttributeError:
-                continue
-            try:
+                tds = tr.find_all("td")
+                code = tds[0].a.text
+                pr_market, pr_factory = 0, 0
+                try:
+                    pr_market = float(tds[1].span.text.replace(",", ""))
+                    pr_factory = float(tds[2].span.text.replace(",", ""))
+                except AttributeError:
+                    pass
+                if pr_market == 0 and pr_factory == 0:
+                    continue
                 prices.append(
                     PriceData(
                         code=code,
                         source="iranjib",
-                        price1=pr[0],
-                        price2=pr[1],
+                        price1=pr_market,
+                        price2=pr_factory,
                         time=datetime.now(tz=tehran_tz).isoformat(),
                     )
                 )
