@@ -7,7 +7,7 @@ from fastapi import FastAPI
 
 sys.path.append("src")
 
-from data_tools import PriceData
+from data_tools import PriceData, PricesPayload
 from crawlers import get_bonbast_prices, get_car_prices
 
 
@@ -17,8 +17,8 @@ NERKH_TOKEN = os.environ["NERKH_TOKEN"]
 
 
 # Function to post a list of PriceData to a URL
-def post_data(url: str, data: List[PriceData]):
-    json_data = [item.model_dump() for item in data]
+def post_data(url: str, prices: List[PriceData]):
+    json_data = PricesPayload(prices=prices).model_dump()
     response = requests.post(url, headers={"token": NERKH_TOKEN}, json=json_data)
     return response
 

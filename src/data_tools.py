@@ -114,15 +114,23 @@ iranjib_transtale_dict = {
 
 
 class PriceData(BaseModel):
-    code: str = ""  # code of the asset, for example, USD-TMN.
-    category: str = ""  # category of the asset, currently supported categories: cuurency, commodity, digital_currency, car
+    code: str = ""  # code of the asset, for example, "USD-TMN".
+    category: str = ""  # category of the asset, currently 4 supported categories: cuurency, commodity, digital_currency, car.
     description: str = ""  # a description about the asset.
     source: str = ""  # source of the data.
-    price1: float = 0  # always the higher price, for example, sell price for currency and market price for car.
-    price2: float = 0  # always the lower price, for example, buy price for currency and factory price for car.
-    price1_change: float = 0  # price1 change compared to yesterday
-    price2_change: float = 0  # price1 change compared to yesterday
-    time: str = ""  # time of the data in format of datetime.isoformat: "yyyy-mm-ddThh:mm:ss.ms"
+    price_high: float = 0  # assets's higher price, for example, sell price for currency and market price for car.
+    price_low: float = 0  # assets's lower price, for example, buy price for currency and factory price for car.
+    price_high_change: float = 0  # price_high change compared to yesterday.
+    price_low_change: float = 0  # price_low change compared to yesterday.
+    time: str = ""  # register time of the data in the iso format: "yyyy-mm-ddThh:mm:ss.ms".
+
+
+class PricesPayload(BaseModel):
+    prices: List[PriceData]
+
+
+class CodesPayload(BaseModel):
+    codes: List[str]
 
 
 def translate_prices(prices: List[PriceData], prune: bool = True) -> List[PriceData]:

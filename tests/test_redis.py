@@ -110,26 +110,26 @@ class TestRedisData(unittest.TestCase):
 
         # insert a valid code and retrieve it
         code = "USD-TMN"
-        newprice = PriceData(code=code, price1=70000, price2=69000, time="2024-05-02T17:15:00")
+        newprice = PriceData(code=code, price_high=70000, price_low=69000, time="2024-05-02T17:15:00")
         analyze_and_store_price(newprice, self.r)
         self.assertEqual(newprice.model_dump(), get_price_from_db(f"{code}:current", self.r).model_dump())
 
         # insert a valid code while it is already available in the db (same day, 15 mins later)
-        newprice = PriceData(code=code, price1=72000, price2=70000, time="2024-05-02T17:30:00")
+        newprice = PriceData(code=code, price_high=72000, price_low=70000, time="2024-05-02T17:30:00")
         analyze_and_store_price(newprice, self.r)
         self.assertFalse(self.r.exists(f"{code}:yesterday"))  # we shouldn't still have a price for yesterday
         self.assertEqual(newprice.model_dump(), get_price_from_db(f"{code}:current", self.r).model_dump())
 
         # insert a valid code while it is already available in the db (next day)
-        newprice_newday = PriceData(code=code, price1=75000, price2=74000, time="2024-05-03T17:30:00")
+        newprice_newday = PriceData(code=code, price_high=75000, price_low=74000, time="2024-05-03T17:30:00")
         analyze_and_store_price(newprice_newday, self.r)
         self.assertTrue(self.r.exists(f"{code}:yesterday"))  # we should have a price for yesterday
         self.assertEqual(newprice.model_dump(), get_price_from_db(f"{code}:yesterday", self.r).model_dump())
 
         current_price = get_price_from_db(f"{code}:current", self.r)
         self.assertNotEqual(newprice_newday.model_dump(), current_price.model_dump())
-        self.assertEqual(current_price.price1_change, 3000)
-        self.assertEqual(current_price.price2_change, 4000)
+        self.assertEqual(current_price.price_high_change, 3000)
+        self.assertEqual(current_price.price_low_change, 4000)
 
 
 if __name__ == "__main__":

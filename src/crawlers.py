@@ -32,8 +32,8 @@ def get_bonbast_prices(check_website_is_available_first: bool = False) -> List[P
                     PriceData(
                         code=model.code,
                         source="bonbast",
-                        price1=model.sell,
-                        price2=model.buy,
+                        price_high=model.sell,
+                        price_low=model.buy,
                         time=datetime.now(tz=tehran_tz).isoformat(),
                     )
                 )
@@ -42,7 +42,7 @@ def get_bonbast_prices(check_website_is_available_first: bool = False) -> List[P
                     PriceData(
                         code=model.code,
                         source="bonbast",
-                        price1=float(model.price),
+                        price_high=float(model.price),
                         time=datetime.now(tz=tehran_tz).isoformat(),
                     )
                 )
@@ -72,8 +72,8 @@ def get_tgju_prices() -> List[PriceData]:
                     PriceData(
                         code=name,
                         source="tgju",
-                        price1=float(price.replace(",", "")),
-                        price2=float(price.replace(",", "")),
+                        price_high=float(price.replace(",", "")),
+                        price_low=float(price.replace(",", "")),
                         time=datetime.now(tz=tehran_tz).isoformat(),
                     )
                 )
@@ -112,8 +112,8 @@ def get_car_prices() -> List[PriceData]:
                     PriceData(
                         code=code,
                         source="iranjib",
-                        price1=pr_market,
-                        price2=pr_factory,
+                        price_high=pr_market,
+                        price_low=pr_factory,
                         time=datetime.now(tz=tehran_tz).isoformat(),
                     )
                 )
