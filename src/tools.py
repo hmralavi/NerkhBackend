@@ -1,4 +1,6 @@
 import time
+import requests
+import subprocess
 
 
 def measure_time(func):
@@ -10,3 +12,22 @@ def measure_time(func):
         return result
 
     return wrapper
+
+
+def get_public_ip():
+    try:
+        response = requests.get("https://httpbin.org/ip")
+        data = response.json()
+        return data["origin"]
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+
+def get_current_branch():
+    try:
+        result = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], capture_output=True, text=True, check=True)
+        return result.stdout.strip()
+    except subprocess.CalledProcessError:
+        # Handle the case where Git is not available or the command fails
+        return None

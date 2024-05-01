@@ -1,9 +1,14 @@
-# TODO: use httpx.AsyncClient (pip install httpx) instead of requests.get
+"""
+TODO: use httpx.AsyncClient (pip install httpx) instead of requests.get
+"""
+
 import bonbast.main
+import bonbast.models
 import requests
 from bs4 import BeautifulSoup
-from data_tools import PriceData
+from data_tools import PriceData, translate_prices
 from datetime import datetime, timezone, timedelta
+from typing import List
 
 # Define the offset for Tehran timezone (UTC+3:30)
 tehran_offset = timedelta(hours=3, minutes=30)
@@ -12,43 +17,40 @@ tehran_offset = timedelta(hours=3, minutes=30)
 tehran_tz = timezone(tehran_offset)
 
 
-def get_bonbast_prices(check_website_is_available_first: bool = False) -> list[PriceData]:
+def get_bonbast_prices(check_website_is_available_first: bool = False) -> List[PriceData]:
     if check_website_is_available_first:
         try:
             requests.get("https://bonbast.com", timeout=20)
         except requests.exceptions.ConnectTimeout as e:
-            err = PriceData(name=str(e), code="ERROR", source="", price=0)
-            return [err]
+            return [PriceData(code="ERROR", description=str(e))]
     collections = bonbast.main.get_prices()
     prices = []
     for collection in collections:
         for model in collection:
-            try:
+            if isinstance(model, bonbast.models.Currency) or isinstance(model, bonbast.models.Coin):
                 prices.append(
                     PriceData(
                         code=model.code,
-                        name=model.name,
                         source="bonbast",
-                        price_sell=model.sell,
-                        price_buy=model.buy,
+                        price_high=model.sell,
+                        price_low=model.buy,
                         time=datetime.now(tz=tehran_tz).isoformat(),
                     )
                 )
-            except AttributeError:
+            elif isinstance(model, bonbast.models.Gold):
                 prices.append(
                     PriceData(
                         code=model.code,
-                        name=model.name,
                         source="bonbast",
-                        price_sell=float(model.price),
-                        price_buy=float(model.price),
+                        price_high=float(model.price),
                         time=datetime.now(tz=tehran_tz).isoformat(),
                     )
                 )
+    prices = translate_prices(prices)
     return prices
 
 
-def get_tgju_prices() -> list[PriceData]:
+def get_tgju_prices() -> List[PriceData]:
     url = "https://www.tgju.org/currency"
     response = requests.get(url)
     prices = []
@@ -69,10 +71,9 @@ def get_tgju_prices() -> list[PriceData]:
                 prices.append(
                     PriceData(
                         code=name,
-                        name=name,
                         source="tgju",
-                        price_sell=float(price.replace(",", "")),
-                        price_buy=float(price.replace(",", "")),
+                        price_high=float(price.replace(",", "")),
+                        price_low=float(price.replace(",", "")),
                         time=datetime.now(tz=tehran_tz).isoformat(),
                     )
                 )
@@ -80,4 +81,50 @@ def get_tgju_prices() -> list[PriceData]:
                 pass
     else:
         print(f"Failed to retrieve webpage: {response.status_code}")
+    prices = translate_prices(prices)
     return prices
+
+
+def get_car_prices() -> List[PriceData]:
+    """
+    get car price from iranjib.ir
+    """
+    url = "https://www.iranjib.ir/showgroup/45/%D9%82%DB%8C%D9%85%D8%AA-%D8%AE%D9%88%D8%AF%D8%B1%D9%88-%D8%AA%D9%88%D9%84%DB%8C%D8%AF-%D8%AF%D8%A7%D8%AE%D9%84/"
+    response = requests.get(url)
+    prices = []
+
+    if response.status_code == 200:
+        # Parse the HTML content using BeautifulSoup
+        soup = BeautifulSoup(response.text, "html.parser")
+        for tr in soup.find_all("tr"):
+            try:
+                tds = tr.find_all("td")
+                code = tds[0].a.text
+                pr_market, pr_factory = 0, 0
+                try:
+                    pr_market = float(tds[1].span.text.replace(",", ""))
+                    pr_factory = float(tds[2].span.text.replace(",", ""))
+                except AttributeError:
+                    pass
+                if pr_market == 0 and pr_factory == 0:
+                    continue
+                prices.append(
+                    PriceData(
+                        code=code,
+                        source="iranjib",
+                        price_high=pr_market,
+                        price_low=pr_factory,
+                        time=datetime.now(tz=tehran_tz).isoformat(),
+                    )
+                )
+            except Exception as e:
+                pass
+    else:
+        print(f"Failed to retrieve webpage: {response.status_code}")
+    prices = translate_prices(prices)
+    return prices
+
+
+# prices = get_car_prices()
+# prices = get_bonbast_prices()
+# print(prices)

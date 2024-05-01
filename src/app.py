@@ -1,12 +1,13 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException, Depends, status, Header
-from typing import List
-from data_tools import PriceData, MAIN_CODES, is_prices_same_day
+from fastapi import FastAPI, HTTPException, Depends, status, Header, Response
+from typing import Union
+from data_tools import PriceData, PricesPayload, CodesPayload, MAIN_CODES, is_prices_same_day
 import redis
 from settings import *
 from authentication_tools import validate_token
 import json
 from datetime import datetime
+import gzip
 
 
 @asynccontextmanager
@@ -56,8 +57,10 @@ def get_price_from_db(key: str, redisdb: redis.Redis) -> PriceData:
     Returns:
         PriceData: _description_
     """
-
-    price = PriceData(**json.loads(redisdb.get(key)))
+    if redisdb.exists(key):
+        price = PriceData(**json.loads(redisdb.get(key)))
+    else:
+        raise KeyError(f"Key '{key}' does not exist in the database.")
     return price
 
 
@@ -88,7 +91,7 @@ def analyze_and_store_price(newprice: PriceData, redisdb: redis.Redis):
     newprice = newprice.model_copy()
     code = newprice.code
     if code not in MAIN_CODES:
-        raise ValueError(f"code '{code}' not valid. valid codes: {MAIN_CODES}")
+        raise KeyError(f"code '{code}' not valid. valid codes: {MAIN_CODES.keys()}")
 
     # get current price in db
     current_price = newprice.model_copy()
@@ -109,8 +112,10 @@ def analyze_and_store_price(newprice: PriceData, redisdb: redis.Redis):
 
     # calculate price changes compared to yesterday
     if yesterday_price:
-        newprice.price_buy_change = newprice.price_buy - yesterday_price.price_buy
-        newprice.price_sell_change = newprice.price_sell - yesterday_price.price_sell
+        if newprice.price_high_change == 0:
+            newprice.price_high_change = newprice.price_high - yesterday_price.price_high
+        if newprice.price_low_change == 0:
+            newprice.price_low_change = newprice.price_low - yesterday_price.price_low
 
     # store the new price in db
     store_price_in_db(current_key, newprice, redisdb)
@@ -125,54 +130,120 @@ def index() -> str:
 
 
 @app.post("/submit_prices")
-def submit_prices(prices: List[PriceData], authenticated: bool = Depends(authenticate_token)):
+def submit_prices(payload: PricesPayload, authenticated: bool = Depends(authenticate_token)) -> str:
     """
     Submit prices to the server. you need a token for this action.
     """
     n_success = 0
-    for price in prices:
+    rejected = []
+    for price in payload.prices:
         try:
             analyze_and_store_price(price, app.state.redis)
             n_success += 1
-        except:
-            pass
+        except KeyError:
+            rejected.append(price.code)
 
-    return f"{n_success}/{len(prices)} prices stored successfully."
+    return f"{n_success}/{len(payload.prices)} prices stored successfully. rejected: {rejected}."
 
 
 @app.post("/get_prices")
-def get_prices(codes: List[str] = []) -> List[PriceData]:
+def get_prices(payload: CodesPayload = CodesPayload(codes=[]), compression: bool = False) -> PricesPayload:
     """
-    Gets prices from the server.
+    *Gets prices from the server.*
 
-    You can get all prices by passing an empty list. for example:
+    You can get all prices by passing "codes" as an empty list. for example:
 
-    `curl -X 'POST' 'https://nerkh-api-dev.liara.run/get_prices' -H 'accept: application/json' -H 'Content-Type: application/json' -d '[]'`
+    ```
+    curl -X 'POST' \\
+    'https://nerkh-api-dev.liara.run/get_prices' \\
+    -H 'accept: application/json' \\
+    -H 'Content-Type: application/json' \\
+    -d '{
+            "codes": []
+        }'
+    ```
 
     or get prices for specific assets by passing their codes. for example:
 
-    `curl -X 'POST' 'https://nerkh-api-dev.liara.run/get_prices' -H 'accept: application/json' -H 'Content-Type: application/json' -d '["USD-TMN", "EUR-TMN"]'`
+    ```
+    curl -X 'POST' \\
+    'https://nerkh-api-dev.liara.run/get_prices' \\
+    -H 'accept: application/json' \\
+    -H 'Content-Type: application/json' \\
+    -d '{
+            "codes": [
+                        "USD-TMN",
+                        "EUR-TMN",
+                     ]
+        }'
+    ```
+    
+    **gzip compression:**
+    
+    By default the json response is not compressed.
+    However, you can get gzip compressed data by passing `?compression=true` in query:
 
-    Raises:
+    ```
+    curl --compressed -X 'POST' \\
+    'https://nerkh-api-dev.liara.run/get_prices?compression=true' \\
+    -H 'accept: application/json' \\
+    -H 'Content-Type: application/json' \\
+    -d '{
+            "codes": []
+        }'
+    ```
 
-        HTTPException 404: if one of the input codes is invalid, you'll get this error.
+    **Raises:**
 
-    Returns:
+    *HTTPException 404*: if one of the input codes is invalid (passing "USD" instead of "USD-TMN" for example), you'll get this error.
 
-        List[PriceData]: a json file containing a list of prices.
+
+    **Returns:**
+
+    A JSON file containing a list of PriceData. here is the JSON structure:
+    ```
+    {
+        "prices": [
+            PriceData1,
+            PriceData2,
+            ...
+        ]
+    }
+    ```
+    each element of the list is an instance of the PriceData class which contains the following keys:
+
+    ```
+    PriceData = {
+        "code": str                     # code of the asset, for example, "USD-TMN".
+        "category": str                 # category of the asset, currently 4 supported categories: cuurency, commodity, digital_currency, car.
+        "description": str              # a description about the asset.
+        "source": str                   # source of the data.
+        "price_high": float             # assets's higher price, for example, sell price for currency and market price for car.
+        "price_low: float               # assets's lower price, for example, buy price for currency and factory price for car.
+        "price_high_change": float      # price_high change compared to yesterday.
+        "price_low_change": float       # price_low change compared to yesterday.
+        "time": str                     # register time of the data in the iso format: "yyyy-mm-ddThh:mm:ss.ms".
+    }
+    ```
+    Alternatively, if an error occurs, you get a string as the error message.
     """
     prices = []
-    if codes:
-        for c in codes:
-            if c not in MAIN_CODES:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND, detail=f"code '{c}' is not valid. valid codes: {MAIN_CODES}."
-                )
+    codes = payload.codes
+    if not codes:
+        codes = list(MAIN_CODES.keys())
+    for c in codes:
+        try:
             prices.append(get_price_from_db(f"{c}:current", app.state.redis))
-    else:
-        prices = [get_price_from_db(f"{c}:current", app.state.redis) for c in MAIN_CODES]
+        except KeyError as e:
+            return str(e) + f"\nValid codes: {MAIN_CODES.keys()}."
 
-    return prices
+    response = PricesPayload(prices=prices)
+    if compression:
+        data_gzip = gzip.compress(response.model_dump_json().encode("utf-8"))
+        response_headers = {"Content-Type": "application/json", "Content-Encoding": "gzip"}
+        response = Response(content=data_gzip, headers=response_headers)
+
+    return response
 
 
 if __name__ == "__main__":
