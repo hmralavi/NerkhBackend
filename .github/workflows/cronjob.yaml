@@ -48,7 +48,9 @@ jobs:
         run: |
           sudo snap install opera-proxy
           opera-proxy -country EU >/dev/null 2>&1 &
-          sleep 10      
+          sleep 10 
+          export http_proxy="http://127.0.0.1:18080"
+          export https_proxy="http://127.0.0.1:18080"
 
       - name: Post prices to backend
         if: success()
